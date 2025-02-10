@@ -168,6 +168,8 @@
     letter-spacing: 0.04em;
     color: #121324;
     transition: background-color 0.3s ease, color 0.3s ease;
+    align-content: center;
+    justify-content: center;
   }
   
   button:hover {
