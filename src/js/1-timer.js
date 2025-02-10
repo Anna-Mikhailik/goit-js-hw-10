@@ -9,6 +9,9 @@ const daysEl = document.querySelector("[data-days]");
 const hoursEl = document.querySelector("[data-hours]");
 const minutesEl = document.querySelector("[data-minutes]");
 const secondsEl = document.querySelector("[data-seconds]");
+const modal = document.getElementById("modal");
+const overlay = document.getElementById("overlay");
+const openModalBtn = document.getElementById("open-modal");
 
 let userSelectedDate = null;
 let timerInterval = null;
@@ -22,7 +25,7 @@ const options = {
         const selectedTime = selectedDates[0];
         if (selectedTime <= new Date()) {
             iziToast.error({
-                title: "Error",
+                title: "Помилка",
                 message: "Please choose a date in the future",
                 position: "topRight"
             });
@@ -30,6 +33,7 @@ const options = {
         } else {
             userSelectedDate = selectedTime;
             startButton.disabled = false;
+            closeModal();
         }
     }
 };
@@ -63,7 +67,7 @@ function updateTimerDisplay({ days, hours, minutes, seconds }) {
 
 function startCountdown() {
     startButton.disabled = true;
-    dateTimePicker.disabled = true;
+    openModalBtn.disabled = true;
 
     timerInterval = setInterval(() => {
         const now = new Date();
@@ -72,12 +76,30 @@ function startCountdown() {
         if (timeRemaining <= 0) {
             clearInterval(timerInterval);
             updateTimerDisplay({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-            dateTimePicker.disabled = false;
+            openModalBtn.disabled = false;
             return;
         }
 
         updateTimerDisplay(convertMs(timeRemaining));
     }, 1000);
 }
+
+// Відкриття модального вікна
+function openModal() {
+    modal.classList.add("active");
+    overlay.classList.add("active");
+}
+
+// Закриття модального вікна
+function closeModal() {
+    modal.classList.remove("active");
+    overlay.classList.remove("active");
+}
+
+// Обробник кліку на кнопку "📅 Вибрати дату"
+openModalBtn.addEventListener("click", openModal);
+
+// Закриття модального вікна при кліку поза ним
+overlay.addEventListener("click", closeModal);
 
 startButton.addEventListener("click", startCountdown);
