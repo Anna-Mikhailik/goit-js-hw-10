@@ -1,79 +1,93 @@
-import flatpickr from "flatpickr";
-import "flatpickr/dist/flatpickr.min.css";
-import iziToast from "izitoast";
-import "izitoast/dist/css/iziToast.min.css";
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
 
-const dateTimePicker = document.querySelector("#datetime-picker");
-const startButton = document.querySelector("[data-start]");
-const daysEl = document.querySelector("[data-days]");
-const hoursEl = document.querySelector("[data-hours]");
-const minutesEl = document.querySelector("[data-minutes]");
-const secondsEl = document.querySelector("[data-seconds]");
-const openModalBtn = document.getElementById("open-modal");
+function addLeadingZero(value) {
+  return String(value).padStart(2, '0');
+}
 
-let timerInterval = null;
+function convertMs(ms) {
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
 
-// Дата за замовчуванням: 21 липня 2017 року, 17:57
-const defaultDate = new Date("2017-07-21T17:57:00");
+  // Remaining days
+  const days = Math.floor(ms / day);
+  // Remaining hours
+  const hours = Math.floor((ms % day) / hour);
+  // Remaining minutes
+  const minutes = Math.floor(((ms % day) % hour) / minute);
+  // Remaining seconds
+  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
 
-const options = {
-    enableTime: true,
-    time_24hr: true,
-    defaultDate: defaultDate,
-    minuteIncrement: 1,
-    onClose(selectedDates) {
-        const selectedTime = selectedDates[0];
-        startCountdown(selectedTime);
-    }
+  return { days, hours, minutes, seconds };
+}
+
+let SelectedDate = null;
+let downInterval = null;
+
+const startbtn = document.querySelector('[data-start]');
+const inputDatetime = document.querySelector('input#datetime-picker');
+const timerFields = {
+  days: document.querySelector('[data-days]'),
+  hours: document.querySelector('[data-hours]'),
+  minutes: document.querySelector('[data-minutes]'),
+  seconds: document.querySelector('[data-seconds]'),
 };
 
-// Ініціалізація flatpickr
-const calendar = flatpickr(dateTimePicker, options);
+const options = {
+  enableTime: true,
+  time_24hr: true,
+  defaultDate: new Date(),
+  minuteIncrement: 1,
+  onClose(selectedDates) {
+    SelectedDate = selectedDates[0];
+    if (SelectedDate <= new Date()) {
+      iziToast.error({
+        title: 'Error',
+        message: 'Please choose a date in the future',
+        position: 'topRight',
+        timeout: 3000,
+      });
+      startbtn.disabled = true;
+    } else {
+      iziToast.success({
+        title: 'Success',
+        message: 'You have selected a valid date!',
+        position: 'topRight',
+      });
+      startbtn.disabled = false;
+    }
+  },
+};
 
-// Відкриття календаря при натисканні кнопки 📅 Вибрати дату
-openModalBtn.addEventListener("click", () => {
-    dateTimePicker.click(); // Відкриває flatpickr
-});
+flatpickr(inputDatetime, options);
 
-// Функція для перетворення мс у дні, години, хвилини, секунди
-function convertMs(ms) {
-    const second = 1000;
-    const minute = second * 60;
-    const hour = minute * 60;
-    const day = hour * 24;
+function updateTimer() {
+  const timeLeft = SelectedDate - new Date();
+  if (timeLeft <= 0) {
+    clearInterval(downInterval);
+    startbtn.disabled = false;
+    inputDatetime.disabled = false;
+    return;
+  }
 
-    const days = Math.floor(ms / day);
-    const hours = Math.floor((ms % day) / hour);
-    const minutes = Math.floor(((ms % day) % hour) / minute);
-    const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+  const { days, hours, minutes, seconds } = convertMs(timeLeft);
 
-    return { days, hours, minutes, seconds };
+  timerFields.days.textContent = addLeadingZero(days);
+  timerFields.hours.textContent = addLeadingZero(hours);
+  timerFields.minutes.textContent = addLeadingZero(minutes);
+  timerFields.seconds.textContent = addLeadingZero(seconds);
 }
 
-// Додає 0 перед цифрою, якщо вона < 10
-function addLeadingZero(value) {
-    return String(value).padStart(2, "0");
+function startTimer() {
+  startbtn.disabled = true;
+  inputDatetime.disabled = true;
+
+  downInterval = setInterval(updateTimer, 1000);
+  updateTimer();
 }
 
-// Оновлення відображення таймера
-function updateTimerDisplay({ days, hours, minutes, seconds }) {
-    daysEl.textContent = addLeadingZero(days);
-    hoursEl.textContent = addLeadingZero(hours);
-    minutesEl.textContent = addLeadingZero(minutes);
-    secondsEl.textContent = addLeadingZero(seconds);
-}
-
-// Запуск таймера
-function startCountdown(targetDate) {
-    clearInterval(timerInterval);
-
-    timerInterval = setInterval(() => {
-        const now = new Date();
-        const timeRemaining = now - targetDate; // Використовуємо минулий час для відліку
-
-        updateTimerDisplay(convertMs(timeRemaining));
-    }, 1000);
-}
-
-// Автоматичний запуск таймера з моменту завантаження сторінки
-startCountdown(defaultDate);
+startbtn.addEventListener('click', startTimer);
