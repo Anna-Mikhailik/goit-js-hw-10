@@ -9,8 +9,6 @@ const daysEl = document.querySelector("[data-days]");
 const hoursEl = document.querySelector("[data-hours]");
 const minutesEl = document.querySelector("[data-minutes]");
 const secondsEl = document.querySelector("[data-seconds]");
-const modal = document.getElementById("modal");
-const overlay = document.getElementById("overlay");
 const openModalBtn = document.getElementById("open-modal");
 
 let timerInterval = null;
@@ -26,11 +24,16 @@ const options = {
     onClose(selectedDates) {
         const selectedTime = selectedDates[0];
         startCountdown(selectedTime);
-        closeModal();
     }
 };
 
-flatpickr(dateTimePicker, options);
+// Ініціалізація flatpickr
+const calendar = flatpickr(dateTimePicker, options);
+
+// Відкриття календаря при натисканні кнопки 📅 Вибрати дату
+openModalBtn.addEventListener("click", () => {
+    dateTimePicker.click(); // Відкриває flatpickr
+});
 
 // Функція для перетворення мс у дні, години, хвилини, секунди
 function convertMs(ms) {
@@ -71,22 +74,6 @@ function startCountdown(targetDate) {
         updateTimerDisplay(convertMs(timeRemaining));
     }, 1000);
 }
-
-// Відкриття модального вікна
-function openModal() {
-    modal.classList.add("active");
-    overlay.classList.add("active");
-}
-
-// Закриття модального вікна
-function closeModal() {
-    modal.classList.remove("active");
-    overlay.classList.remove("active");
-}
-
-// Обробник кліку на кнопку "📅 Вибрати дату"
-openModalBtn.addEventListener("click", openModal);
-overlay.addEventListener("click", closeModal);
 
 // Автоматичний запуск таймера з моменту завантаження сторінки
 startCountdown(defaultDate);
