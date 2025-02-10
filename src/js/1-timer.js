@@ -13,33 +13,26 @@ const modal = document.getElementById("modal");
 const overlay = document.getElementById("overlay");
 const openModalBtn = document.getElementById("open-modal");
 
-let userSelectedDate = null;
 let timerInterval = null;
+
+// Дата за замовчуванням: 21 липня 2017 року, 17:57
+const defaultDate = new Date("2017-07-21T17:57:00");
 
 const options = {
     enableTime: true,
     time_24hr: true,
-    defaultDate: new Date(),
+    defaultDate: defaultDate,
     minuteIncrement: 1,
     onClose(selectedDates) {
         const selectedTime = selectedDates[0];
-        if (selectedTime <= new Date()) {
-            iziToast.error({
-                title: "Помилка",
-                message: "Please choose a date in the future",
-                position: "topRight"
-            });
-            startButton.disabled = true;
-        } else {
-            userSelectedDate = selectedTime;
-            startButton.disabled = false;
-            closeModal();
-        }
+        startCountdown(selectedTime);
+        closeModal();
     }
 };
 
 flatpickr(dateTimePicker, options);
 
+// Функція для перетворення мс у дні, години, хвилини, секунди
 function convertMs(ms) {
     const second = 1000;
     const minute = second * 60;
@@ -54,10 +47,12 @@ function convertMs(ms) {
     return { days, hours, minutes, seconds };
 }
 
+// Додає 0 перед цифрою, якщо вона < 10
 function addLeadingZero(value) {
     return String(value).padStart(2, "0");
 }
 
+// Оновлення відображення таймера
 function updateTimerDisplay({ days, hours, minutes, seconds }) {
     daysEl.textContent = addLeadingZero(days);
     hoursEl.textContent = addLeadingZero(hours);
@@ -65,20 +60,13 @@ function updateTimerDisplay({ days, hours, minutes, seconds }) {
     secondsEl.textContent = addLeadingZero(seconds);
 }
 
-function startCountdown() {
-    startButton.disabled = true;
-    openModalBtn.disabled = true;
+// Запуск таймера
+function startCountdown(targetDate) {
+    clearInterval(timerInterval);
 
     timerInterval = setInterval(() => {
         const now = new Date();
-        const timeRemaining = userSelectedDate - now;
-
-        if (timeRemaining <= 0) {
-            clearInterval(timerInterval);
-            updateTimerDisplay({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-            openModalBtn.disabled = false;
-            return;
-        }
+        const timeRemaining = now - targetDate; // Використовуємо минулий час для відліку
 
         updateTimerDisplay(convertMs(timeRemaining));
     }, 1000);
@@ -98,8 +86,7 @@ function closeModal() {
 
 // Обробник кліку на кнопку "📅 Вибрати дату"
 openModalBtn.addEventListener("click", openModal);
-
-// Закриття модального вікна при кліку поза ним
 overlay.addEventListener("click", closeModal);
 
-startButton.addEventListener("click", startCountdown);
+// Автоматичний запуск таймера з моменту завантаження сторінки
+startCountdown(defaultDate);
