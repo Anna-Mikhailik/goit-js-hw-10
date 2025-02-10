@@ -41,11 +41,7 @@
   }
   
   input {
-    width: 272px;
-    height: 40px;
-    margin-top: 36px;
     margin-right: 8px;
-    margin-bottom: 32px;
     border: 1px solid #808080;
     padding: 8px 16px;
     font-size: 16px;
@@ -66,7 +62,6 @@
   
   .container-imput {
     display: flex;
-    align-items: center;
     justify-content: space-between;
     width: 355px;
     height: 40px;
