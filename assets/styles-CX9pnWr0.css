@@ -1,0 +1,1 @@
+button{border-radius:8px;padding:8px 16px;width:75px;height:40px;font-weight:500;font-size:16px;line-height:150%;letter-spacing:.04em;background-color:#cfcfcf;color:#fff;transition:background-color .3s ease,color .3s ease}button[data-start]:hover{background-color:#6c8cff;color:#fff}
